@@ -41,9 +41,9 @@ class LexerActorTest extends ActorTest {
   }
 
   it should "lex ':ala.ma.kota 123'"in {
-    lexer ! ByteString(":ala.ma.kota 123\r\n".getBytes(charset))
+    lexer ! ByteString(":watson.ma.herbate 123\r\n".getBytes(charset))
     expectMsg(Colon)
-    expectMsg("ala.ma.kota")
+    expectMsg("watson.ma.herbate")
     expectMsg(Space)
     expectMsg("123")
     expectMsg(CRLF)
