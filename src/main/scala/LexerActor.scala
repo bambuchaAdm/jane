@@ -12,7 +12,6 @@ class LexerActor(parser: ActorRef) extends Actor with ActorLogging {
   import Tokens._
 
   val processOneOctetTokens: (ByteString) => ByteString = { buffer =>
-    println(buffer)
     buffer.take(1) match {
       case Space.value =>
         parser ! Space
@@ -21,9 +20,6 @@ class LexerActor(parser: ActorRef) extends Actor with ActorLogging {
         parser ! Colon
         buffer.drop(1)
       case Null.value =>
-        buffer.drop(1)
-      case msg if Digit.digits.contains(msg) =>
-        parser ! Digit(msg)
         buffer.drop(1)
       case _ => buffer
     }
@@ -38,13 +34,32 @@ class LexerActor(parser: ActorRef) extends Actor with ActorLogging {
     }
   }
 
-  val allProcessors = processOneOctetTokens andThen processTowOctetTokens
+  val processString: (ByteString) => ByteString = { buffer =>
+    val terminators = Space.value ++ Colon.value ++ CRLF.value
+    buffer.length match {
+      case 0 => buffer
+      case _ =>
+        val terminatorPosition = buffer.indexWhere(byte => terminators.contains(byte))
+        if(terminatorPosition != -1){
+          parser ! buffer.take(terminatorPosition).utf8String
+        } else {
+          parser ! buffer.utf8String
+        }
+        buffer.drop(terminatorPosition)
+    }
+
+
+  }
+
+  val allProcessors = processOneOctetTokens andThen processTowOctetTokens andThen processString
 
   def process(buffer: ByteString) : Unit = {
     if(buffer.isEmpty) return
-
     val processedValue = allProcessors(buffer)
-    if(processedValue == buffer) throw new LexerException
+    if(processedValue == buffer){
+      log.debug(s"value $buffer is cannot be processed")
+      return
+    }
     process(processedValue)
   }
 

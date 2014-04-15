@@ -1,5 +1,6 @@
 import akka.actor.Props
 import akka.util.ByteString
+import java.nio.charset.Charset
 
 /**
  * Created by bambucha on 11.04.14.
@@ -10,15 +11,17 @@ class LexerActorTest extends ActorTest {
 
   val lexer = system.actorOf(Props(classOf[LexerActor],testActor))
 
+  val charset = Charset.forName("UTF8")
+
   import Tokens._
 
-  it should "lex '0x20' as SPACE" in {
-    lexer ! ByteString(0x20)
+  it should "lex ' ' as SPACE" in {
+    lexer ! ByteString(" ".getBytes(charset))
     expectMsg(Space)
   }
 
-  it should "lex '0x38' as COLON" in {
-    lexer ! ByteString(0x3b)
+  it should "lex ':' as COLON" in {
+    lexer ! ByteString(":".getBytes(charset))
     expectMsg(Colon)
   }
 
@@ -32,8 +35,17 @@ class LexerActorTest extends ActorTest {
     expectMsg(CRLF)
   }
 
-  it should "lex 0x30 as Digit(0)" in {
-    lexer ! ByteString(0x30)
-    expectMsg(Digit(0))
+  it should "lex 'ala' as string" in {
+    lexer ! ByteString("ala".getBytes(charset))
+    expectMsg("ala")
+  }
+
+  it should "lex ':ala.ma.kota 123'"in {
+    lexer ! ByteString(":ala.ma.kota 123\r\n".getBytes(charset))
+    expectMsg(Colon)
+    expectMsg("ala.ma.kota")
+    expectMsg(Space)
+    expectMsg("123")
+    expectMsg(CRLF)
   }
 }

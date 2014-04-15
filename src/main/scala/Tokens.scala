@@ -1,4 +1,5 @@
 import akka.util.ByteString
+import java.nio.charset.Charset
 
 /**
  * Created by bambucha on 11.04.14.
@@ -10,12 +11,14 @@ trait Token {
 
 object Tokens {
 
+  val defaultCharset = Charset.forName("UTF8")
+
   case object Space extends Token {
     override val value = ByteString(0x20)
   }
 
   case object Colon extends Token {
-    override val value = ByteString(0x3b)
+    override val value = ByteString(0x3a)
   }
 
   case object Null extends Token {
@@ -25,18 +28,4 @@ object Tokens {
   case object CRLF extends Token {
     override val value = ByteString(0x0D, 0x0A)
   }
-
-  case class Digit(digit: Int) extends Token {
-    override val value = ByteString(0x30 + digit)
-  }
-
-  object Digit {
-    val digits = Range(0x30,0x39).map(ByteString(_))
-
-    def apply(buffer: ByteString): Digit = {
-      val asciiOffset = 0x30
-      Digit(buffer(0) - asciiOffset)
-    }
-  }
-
 }
