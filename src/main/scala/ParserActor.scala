@@ -10,6 +10,7 @@ case object ParseCommand extends ParserState
 case object ParseParameters extends ParserState
 case object ParseParameter extends ParserState
 case object ParseMiddleParameter extends ParserState
+case object ParseTrailingParameter  extends ParserState
 
 sealed trait ParserData {
   def addParameter(param: String): ParserData
@@ -36,7 +37,7 @@ object ParserActorProtocol {
         copy(params = List(param))
       } else {
         copy(params = List(param))
-        //copy(params = params.updated(params.length, params.lastOption.fold(param){ _ + param  }))
+        copy(params = params.updated(params.length-1, params.lastOption.fold(param){ _ + param  }))
       }
     }
   }
@@ -81,6 +82,16 @@ class ParserActor(output: ActorRef) extends Actor with FSM[ParserState, ParserDa
     case Event(text: String, message: Message) => {
       goto(ParseMiddleParameter) using message.appendToLastParameter(text)
     }
+    case Event(Colon, message: Message) => {
+      goto(ParseTrailingParameter) using message
+    }
+    case Event(Space, message: Message) => {
+      goto(ParseParameter) using message
+    }
+    case Event(CRLF, message: Message) => {
+      output ! message
+      goto(ParseMessage) using Empty
+    }
   }
 
   when(ParseMiddleParameter) {
@@ -91,7 +102,23 @@ class ParserActor(output: ActorRef) extends Actor with FSM[ParserState, ParserDa
       goto(ParseMiddleParameter) using message.appendToLastParameter(":")
     }
     case Event(Space, message: Message) => {
-      goto(ParseParameters) using message
+      goto(ParseParameter) using message
+    }
+    case Event(CRLF, message: Message) => {
+      output ! message
+      goto(ParseMessage) using Empty
+    }
+  }
+
+  when(ParseTrailingParameter){
+    case Event(text: String, message: Message) => {
+      goto(ParseTrailingParameter) using message.appendToLastParameter(text)
+    }
+    case Event(Colon, message: Message) => {
+      goto(ParseTrailingParameter) using message.appendToLastParameter(":")
+    }
+    case Event(Space, message: Message) => {
+      goto(ParseTrailingParameter) using message.appendToLastParameter(" ")
     }
     case Event(CRLF, message: Message) => {
       output ! message
