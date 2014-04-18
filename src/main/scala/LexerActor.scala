@@ -42,10 +42,12 @@ class LexerActor(parser: ActorRef) extends Actor with ActorLogging {
         val terminatorPosition = buffer.indexWhere(byte => terminators.contains(byte))
         if(terminatorPosition != -1){
           parser ! buffer.take(terminatorPosition).utf8String
+          buffer.drop(terminatorPosition)
         } else {
           parser ! buffer.utf8String
+          ByteString.empty
         }
-        buffer.drop(terminatorPosition)
+
     }
 
 

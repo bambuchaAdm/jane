@@ -1,11 +1,11 @@
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKitBase}
-import org.scalatest.{BeforeAndAfterAll, FlatSpec}
+import org.scalatest.{Matchers, BeforeAndAfterAll, FlatSpec}
 
 /**
  * Created by bambucha on 11.04.14.
  */
-abstract class BaseTest extends FlatSpec
+abstract class BaseTest extends FlatSpec with Matchers
 
 trait TestActorSystem {
   implicit val system = ActorSystem(this.getClass.getSimpleName)

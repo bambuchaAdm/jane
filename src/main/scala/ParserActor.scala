@@ -1,4 +1,4 @@
-import akka.actor.{ActorRef, FSM, Actor}
+import akka.actor.{LoggingFSM, ActorRef, FSM, Actor}
 
 
 
@@ -25,27 +25,18 @@ case class Prefix(value: String) extends ParserData {
 }
 
 case class Command(prefix: Option[String], command: Int) extends ParserData{
-  import ParserActorProtocol._
   def addParameter(param: String): ParserData = Message(prefix, command, List(param))
 }
 
-object ParserActorProtocol {
-  case class Message(prefix: Option[String], command: Int, params: List[String]) extends ParserData {
-    def addParameter(param: String): ParserData = copy(params = params.::(param))
-    def appendToLastParameter(param: String): ParserData = {
-      if(params.isEmpty){
-        copy(params = List(param))
-      } else {
-        copy(params = List(param))
-        copy(params = params.updated(params.length-1, params.lastOption.fold(param){ _ + param  }))
-      }
-    }
+case class Message(prefix: Option[String], command: Int, params: List[String]) extends ParserData {
+  def addParameter(param: String): ParserData = copy(params = params :+ param)
+  def appendToLastParameter(param: String): ParserData = {
+    copy(params = params.updated(params.length-1, params.last + param))
   }
 }
 
-class ParserActor(output: ActorRef) extends Actor with FSM[ParserState, ParserData] {
+class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, ParserData] {
 
-  import ParserActorProtocol._
   import Tokens._
 
   startWith(ParseMessage, Empty)
@@ -79,14 +70,14 @@ class ParserActor(output: ActorRef) extends Actor with FSM[ParserState, ParserDa
   }
 
   when(ParseParameter) {
-    case Event(text: String, message: Message) => {
+    case Event(text: String, message: Message) if message.params.size < 15 => {
       goto(ParseMiddleParameter) using message.appendToLastParameter(text)
+    }
+    case Event(text: String, message: Message)=> {
+      goto(ParseTrailingParameter) using message.appendToLastParameter(text)
     }
     case Event(Colon, message: Message) => {
       goto(ParseTrailingParameter) using message
-    }
-    case Event(Space, message: Message) => {
-      goto(ParseParameter) using message
     }
     case Event(CRLF, message: Message) => {
       output ! message
@@ -102,7 +93,7 @@ class ParserActor(output: ActorRef) extends Actor with FSM[ParserState, ParserDa
       goto(ParseMiddleParameter) using message.appendToLastParameter(":")
     }
     case Event(Space, message: Message) => {
-      goto(ParseParameter) using message
+      goto(ParseParameter) using message.addParameter("")
     }
     case Event(CRLF, message: Message) => {
       output ! message
