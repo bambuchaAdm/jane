@@ -28,13 +28,6 @@ class ParserActorTest extends ActorTest {
     expectMsg(Message(None, numericCommand, List.empty))
   }
 
-  it should "parse message with letter as command" in {
-    val parser = system.actorOf(props)
-    parser ! "A"
-    parser ! CRLF
-    expectMsg(Message(None, numericCommand, List.empty))
-  }
-
   it should "parse message without paramters" in {
     val parser = system.actorOf(props)
     parser ! Colon
