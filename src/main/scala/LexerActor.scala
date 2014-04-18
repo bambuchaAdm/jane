@@ -4,9 +4,6 @@ import akka.util.ByteString
 /**
  * Created by bambucha on 11.04.14.
  */
-
-class LexerException extends Throwable
-
 class LexerActor(parser: ActorRef) extends Actor with ActorLogging {
 
   import Tokens._
