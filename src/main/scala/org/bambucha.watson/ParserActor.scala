@@ -1,6 +1,7 @@
-import akka.actor.{LoggingFSM, ActorRef, FSM, Actor}
+package org.bambucha.watson
 
-
+import Tokens.{CRLF, Space, Colon}
+import akka.actor.{LoggingFSM, ActorRef, Actor}
 
 sealed trait ParserState
 
@@ -24,11 +25,11 @@ case class Prefix(value: String) extends ParserData {
   def addParameter(param: String): ParserData = throw new RuntimeException("Trying add parameter to prefix")
 }
 
-case class Command(prefix: Option[String], command: Int) extends ParserData{
-  def addParameter(param: String): ParserData = Message(prefix, command, List(param))
+case class Command(prefix: Option[String], command: String) extends ParserData{
+  def addParameter(param: String): ParserData = IRCMessage(prefix, command, List(param))
 }
 
-case class Message(prefix: Option[String], command: Int, params: List[String]) extends ParserData {
+case class IRCMessage(prefix: Option[String], command: String, params: List[String]) extends ParserData {
   def addParameter(param: String): ParserData = copy(params = params :+ param)
   def appendToLastParameter(param: String): ParserData = {
     copy(params = params.updated(params.length-1, params.last + param))
@@ -37,15 +38,13 @@ case class Message(prefix: Option[String], command: Int, params: List[String]) e
 
 class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, ParserData] {
 
-  import Tokens._
 
   startWith(ParseMessage, Empty)
 
   when(ParseMessage) {
     case Event(Colon, _) => goto(ParsePrefix) using Prefix("")
     case Event(msg: String, Empty) => {
-      val commandValue = Integer.parseInt(msg)
-      goto(ParseParameters) using Command(None,commandValue)
+      goto(ParseParameters) using Command(None, msg)
     }
   }
 
@@ -56,64 +55,72 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
 
   when(ParseCommand) {
     case Event(msg: String, x: Prefix) => {
-      val commandValue = Integer.parseInt(msg)
-      goto(ParseParameters) using Command(Some(x.value), commandValue)
+      goto(ParseParameters) using Command(Some(x.value), msg)
     }
   }
 
   when(ParseParameters) {
     case Event(Space, command: Command) => goto(ParseParameter) using command.addParameter("")
     case Event(CRLF, command: Command) => {
-      output ! Message(command.prefix, command.command, List.empty)
+      output ! IRCMessage(command.prefix, command.command, List.empty)
       goto(ParseMessage) using Empty
     }
   }
 
   when(ParseParameter) {
-    case Event(text: String, message: Message) if message.params.size < 15 => {
+    case Event(text: String, message: IRCMessage) if message.params.size < 15 => {
       goto(ParseMiddleParameter) using message.appendToLastParameter(text)
     }
-    case Event(text: String, message: Message)=> {
+    case Event(text: String, message: IRCMessage)=> {
       goto(ParseTrailingParameter) using message.appendToLastParameter(text)
     }
-    case Event(Colon, message: Message) => {
+    case Event(Colon, message: IRCMessage) => {
       goto(ParseTrailingParameter) using message
     }
-    case Event(CRLF, message: Message) => {
-      output ! message
+    case Event(CRLF, message: IRCMessage) => {
+      sendMessages()
       goto(ParseMessage) using Empty
     }
   }
 
   when(ParseMiddleParameter) {
-    case Event(text: String, message: Message) => {
-      goto(ParseMiddleParameter) using message.appendToLastParameter(text)
+    case Event(text: String, message: IRCMessage) => {
+      stay using message.appendToLastParameter(text)
     }
-    case Event(Colon, message: Message) => {
-      goto(ParseMiddleParameter) using message.appendToLastParameter(":")
+    case Event(Colon, message: IRCMessage) => {
+      stay using message.appendToLastParameter(":")
     }
-    case Event(Space, message: Message) => {
+    case Event(Space, message: IRCMessage) => {
       goto(ParseParameter) using message.addParameter("")
     }
-    case Event(CRLF, message: Message) => {
-      output ! message
+    case Event(CRLF, message: IRCMessage) => {
+      sendMessages()
       goto(ParseMessage) using Empty
     }
   }
 
   when(ParseTrailingParameter){
-    case Event(text: String, message: Message) => {
-      goto(ParseTrailingParameter) using message.appendToLastParameter(text)
+    case Event(text: String, message: IRCMessage) => {
+      stay using message.appendToLastParameter(text)
     }
-    case Event(Colon, message: Message) => {
-      goto(ParseTrailingParameter) using message.appendToLastParameter(":")
+    case Event(Colon, message: IRCMessage) => {
+      stay using message.appendToLastParameter(":")
     }
-    case Event(Space, message: Message) => {
-      goto(ParseTrailingParameter) using message.appendToLastParameter(" ")
+    case Event(Space, message: IRCMessage) => {
+      stay using message.appendToLastParameter(" ")
     }
-    case Event(CRLF, message: Message) => {
-      output ! message
+    case Event(CRLF, message: IRCMessage) => {
+      sendMessages()
       goto(ParseMessage) using Empty
+    }
+  }
+
+  def sendMessages(): Unit =  {
+    stateData match {
+      case message: IRCMessage =>
+        output ! message
+        log.debug(message.toString)
+      case _ =>
     }
   }
 }

@@ -1,3 +1,5 @@
+package org.bambucha.watson
+
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKitBase}
 import org.scalatest.{Matchers, BeforeAndAfterAll, FlatSpec}

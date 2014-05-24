@@ -1,3 +1,5 @@
+package org.bambucha.watson
+
 import akka.util.ByteString
 import java.nio.charset.Charset
 

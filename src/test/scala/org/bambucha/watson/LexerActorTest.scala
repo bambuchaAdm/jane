@@ -1,3 +1,5 @@
+package org.bambucha.watson
+
 import akka.actor.Props
 import akka.util.ByteString
 import java.nio.charset.Charset
@@ -46,6 +48,28 @@ class LexerActorTest extends ActorTest {
     expectMsg("watson.ma.herbate")
     expectMsg(Space)
     expectMsg("123")
+    expectMsg(CRLF)
+  }
+
+  it should "lex ':hobana.freenode.net NOTICE * :*** Looking up your hostname...'" in {
+    lexer ! ByteString(":hobana.freenode.net NOTICE * :*** Looking up your hostname...\r\n".getBytes(charset))
+    expectMsg(Colon)
+    expectMsg("hobana.freenode.net")
+    expectMsg(Space)
+    expectMsg("NOTICE")
+    expectMsg(Space)
+    expectMsg("*")
+    expectMsg(Space)
+    expectMsg(Colon)
+    expectMsg("***")
+    expectMsg(Space)
+    expectMsg("Looking")
+    expectMsg(Space)
+    expectMsg("up")
+    expectMsg(Space)
+    expectMsg("your")
+    expectMsg(Space)
+    expectMsg("hostname...")
     expectMsg(CRLF)
   }
 }

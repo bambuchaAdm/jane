@@ -1,0 +1,53 @@
+:morgan.freenode.net 001 bucza :Welcome to the freenode Internet Relay Chat Network bucza
+:morgan.freenode.net 002 bucza :Your host is morgan.freenode.net[64.32.24.176/6667], running version ircd-seven-1.1.3
+:morgan.freenode.net 003 bucza :This server was created Tue Mar 12 2013 at 18:27:25 EDT
+:morgan.freenode.net 004 bucza morgan.freenode.net ircd-seven-1.1.3 DOQRSZaghilopswz CFILMPQSbcefgijklmnopqrstvz bkloveqjfI
+:morgan.freenode.net 005 bucza CHANTYPES=# EXCEPTS INVEX CHANMODES=eIbq,k,flj,CFLMPQScgimnprstz CHANLIMIT=#:120 PREFIX=(ov)@+ MAXLIST=bqeI:100 MODES=4 NETWORK=freenode KNOCK STATUSMSG=@+ CALLERID=g :are supported by this server
+:morgan.freenode.net 005 bucza CASEMAPPING=rfc1459 CHARSET=ascii NICKLEN=16 CHANNELLEN=50 TOPICLEN=390 ETRACE CPRIVMSG CNOTICE DEAF=D MONITOR=100 FNC TARGMAX=NAMES:1,LIST:1,KICK:1,WHOIS:1,PRIVMSG:4,NOTICE:4,ACCEPT:,MONITOR: :are supported by this server
+:morgan.freenode.net 005 bucza EXTBAN=$,arxz WHOX CLIENTVER=3.0 SAFELIST ELIST=CTU :are supported by this server
+:morgan.freenode.net 251 bucza :There are 190 users and 92319 invisible on 26 servers
+:morgan.freenode.net 252 bucza 30 :IRC Operators online
+:morgan.freenode.net 253 bucza 16 :unknown connection(s)
+:morgan.freenode.net 254 bucza 47104 :channels formed
+:morgan.freenode.net 255 bucza :I have 9238 clients and 5 servers
+:morgan.freenode.net 265 bucza 9238 10278 :Current local users 9238, max 10278
+:morgan.freenode.net 266 bucza 92509 97932 :Current global users 92509, max 97932
+:morgan.freenode.net 250 bucza :Highest connection count: 10283 (10278 clients) (308746 connections received)
+:morgan.freenode.net 375 bucza :- morgan.freenode.net Message of the Day - 
+:morgan.freenode.net 372 bucza :- Welcome to morgan.freenode.net in Chicago, IL, USA! Thank
+:morgan.freenode.net 372 bucza :- you to psyprus for sponsoring this server!
+:morgan.freenode.net 372 bucza :-  
+:morgan.freenode.net 372 bucza :- MORGAN, RICHARD K. (1965-) is an English science fiction
+:morgan.freenode.net 372 bucza :- author. Morgan's books are generally set in a dystopian world.
+:morgan.freenode.net 372 bucza :- His breakout novel Altered Carbon won the Philip K. Dick Award,
+:morgan.freenode.net 372 bucza :- and he has written many successful and amazing works to follow.
+:morgan.freenode.net 372 bucza :- His more recent writings explore the theme of autonomy
+:morgan.freenode.net 372 bucza :- in science fiction and escapism in fantasy.
+:morgan.freenode.net 372 bucza :-  
+:morgan.freenode.net 372 bucza :-  
+:morgan.freenode.net 372 bucza :- Welcome to freenode - supporting the free and open source
+:morgan.freenode.net 372 bucza :- software communities since 1998.
+:morgan.freenode.net 372 bucza :-  
+:morgan.freenode.net 372 bucza :- By connecting to freenode you indicate that you have read and
+:morgan.freenode.net 372 bucza :- accept our policies as set out on http://www.freenode.net
+:morgan.freenode.net 372 bucza :- freenode runs an open proxy scanner. Please join #freenode for
+:morgan.freenode.net 372 bucza :- any network-related questions or queries, where a number of
+:morgan.freenode.net 372 bucza :- volunteer staff and helpful users will be happy to assist you.
+:morgan.freenode.net 372 bucza :-  
+:morgan.freenode.net 372 bucza :- You can meet us at FOSSCON (http://www.fosscon.org) where we get
+:morgan.freenode.net 372 bucza :- together with like-minded FOSS enthusiasts for talks and
+:morgan.freenode.net 372 bucza :- real-life collaboration, if you're more keen on the outdoors why
+:morgan.freenode.net 372 bucza :- not attend or arrange a local geeknic (http://www.geeknic.org).
+:morgan.freenode.net 372 bucza :-  
+:morgan.freenode.net 372 bucza :- We would like to thank Private Internet Access
+:morgan.freenode.net 372 bucza :- (https://www.privateinternetaccess.com/) and the other
+:morgan.freenode.net 372 bucza :- organisations that help keep freenode and our other projects
+:morgan.freenode.net 372 bucza :- running for their sustained support.
+:morgan.freenode.net 372 bucza :-  
+:morgan.freenode.net 372 bucza :- In particular we would like to thank the sponsor
+:morgan.freenode.net 372 bucza :- of this server, details of which can be found above.
+:morgan.freenode.net 372 bucza :-  
+:morgan.freenode.net 372 bucza :- ***************************************************************
+:morgan.freenode.net 372 bucza :- Please read http://blog.freenode.net;/2010/11/be-safe-out-there/
+:morgan.freenode.net 372 bucza :- ***************************************************************
+:morgan.freenode.net 376 bucza :End of /MOTD command.
