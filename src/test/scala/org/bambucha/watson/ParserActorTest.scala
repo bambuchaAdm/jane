@@ -77,7 +77,7 @@ class ParserActorTest extends ActorTest {
     expectMsg(IRCMessage(None, numericCommand, List(planParameter + " " + planParameter + ":" + planParameter)))
   }
 
-  it should "parse message with 14 parameters with explicit colon on last" in {
+  it should "parse message with 15 parameters with explicit colon on last" in {
     val parser = system.actorOf(props)
     parser ! commandCode
     Range(0,14).toList.foreach{ _ =>
@@ -95,7 +95,7 @@ class ParserActorTest extends ActorTest {
     result.params.last shouldEqual (planParameter + " " + planParameter)
   }
 
-  it should "parse message with 14 parameters with no colon on last" in {
+  it should "parse message with 15 parameters with no colon on last" in {
     val parser = system.actorOf(props)
     parser ! commandCode
     Range(0,14).toList.foreach{ _ =>

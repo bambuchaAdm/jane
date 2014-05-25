@@ -55,10 +55,6 @@ class LexerActor(parser: ActorRef) extends Actor with ActorLogging {
       process(data)
     case msg: ByteString =>
       process(msg)
-      case Connected(remote, local) =>
-      connection = sender()
-      connection ! Register(self)
-      log.debug("Connected to {} using port {}", remote.getHostName, local.getPort)
-    case CommandFailed(command) => log.debug(s"Command failed -> ${command.failureMessage}")
+
   }
 }
