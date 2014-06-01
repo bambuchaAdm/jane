@@ -57,12 +57,10 @@ class IRCConnection(dispatcher: ActorRef, nick: String, username: String, isWall
       log.debug(s"Command failed -> ${command.failureMessage}")
     case command: IRCCommand =>
       val message = command.toMessage
-      val commandIdentifier = message.command
-      val formatedParameters = formatParameters(message)
       val rawString = Seq(
-        commandIdentifier,
-        formatedParameters
-      ).mkString
+        message.command,
+        formatParameters(message)
+      ).fold("")(_ + _)
       val payload = ByteString(rawString.getBytes(charset))
       connection ! Write(payload)
   }
