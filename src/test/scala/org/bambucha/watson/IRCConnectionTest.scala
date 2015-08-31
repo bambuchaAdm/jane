@@ -13,7 +13,7 @@ class IRCConnectionTest extends ActorTest {
 
   behavior of classOf[IRCConnection].getSimpleName
 
-  val connectionProps = Props(classOf[IRCConnection], testActor, "", "", false, false, "")
+  val connectionProps = Props(classOf[IRCConnection], testActor)
 
   val address = InetSocketAddress.createUnresolved("localhost", 30)
 
@@ -22,7 +22,7 @@ class IRCConnectionTest extends ActorTest {
     ircConnection ! Connected(address, address)
     expectMsgType[Register]
     ircConnection ! QuitCommand()
-    expectMsg(Write(ByteString("QUIT".getBytes)))
+    expectMsg(Write(ByteString("QUIT\r\n".getBytes)))
   }
 
   it should "send command with parameters without space" in {
@@ -30,7 +30,7 @@ class IRCConnectionTest extends ActorTest {
     ircConnection ! Connected(address, address)
     expectMsgType[Register]
     ircConnection ! QuitCommand("Ala-ma-kota")
-    expectMsg(Write(ByteString("QUIT :Ala-ma-kota".getBytes)))
+    expectMsg(Write(ByteString("QUIT :Ala-ma-kota\r\n".getBytes)))
   }
 
   it should "send command with parameters with space" in {
@@ -38,7 +38,7 @@ class IRCConnectionTest extends ActorTest {
     ircConnection ! Connected(address, address)
     expectMsgType[Register]
     ircConnection ! QuitCommand("Ala ma kota")
-    expectMsg(Write(ByteString("QUIT :Ala ma kota".getBytes)))
+    expectMsg(Write(ByteString("QUIT :Ala ma kota\r\n".getBytes)))
   }
 
 }

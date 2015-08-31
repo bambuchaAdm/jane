@@ -1,58 +1,50 @@
 package org.bambucha.watson
 
-import akka.actor._
-import akka.io.{Tcp, IO}
-import akka.io.Tcp._
 import java.net.InetSocketAddress
-import org.bambucha.watson.messages._
-import akka.util.ByteString
 import java.nio.charset.Charset
-import org.bambucha.watson.messages.NickCommand
-import akka.io.Tcp.Connected
-import akka.io.Tcp.Register
-import akka.io.Tcp.Connect
-import org.bambucha.watson.messages.UserCommand
-import org.bambucha.watson.messages.PasswordCommand
-import akka.io.Tcp.CommandFailed
+
+import akka.actor._
+import akka.io.Tcp.{CommandFailed, Connect, Connected, Register, _}
+import akka.io.{IO, Tcp}
+import akka.util.ByteString
 
 object IRCConnectionProtocol {
   object Start
   object AuthenticateToServer
 }
 
-class IRCConnection(dispatcher: ActorRef, nick: String, username: String, isWallops: Boolean, isInvisible: Boolean, realName: String) extends Actor with ActorLogging with Stash {
-
-  import IRCConnectionProtocol._
-
-  var connection: ActorRef = _
+class IRCConnection(dispatcher: ActorRef) extends Actor with ActorLogging with Stash {
+  import org.bambucha.watson.IRCConnectionProtocol._
+  import org.bambucha.watson.messages.IRCMessage
 
   val parserProps = Props(classOf[ParserActor], dispatcher)
-  val parserActor = context.actorOf(parserProps)
+  val parserActor = context.actorOf(parserProps, "parser")
 
   val lexerProps = Props(classOf[LexerActor], parserActor)
-  val lexerActor = context.actorOf(lexerProps)
+  val lexerActor = context.actorOf(lexerProps, "lexer")
 
   val manager = IO(Tcp)(context.system)
 
   val charset = Charset.forName("utf-8")
 
+  // FIXME tests
   def formatParameters(message: IRCMessage): String = {
     val parameters = message.params
-    val headPayload = parameters.dropRight(1).mkString(" ")
-    parameters.lastOption.fold(""){ tailPayload =>
+    val headPayload = parameters.dropRight(1).mkString(" ", " ", "")
+    parameters.lastOption.fold("\r\n"){ tailPayload =>
       if(parameters.size < 15){
-        s"$headPayload :$tailPayload"
+        s"$headPayload:$tailPayload\r\n"
       } else {
-        s"$headPayload $tailPayload"
+        s"$headPayload$tailPayload\r\n"
       }
     }
   }
 
-  def sendMessages: Actor.Receive = {
+  def sendMessages(connection: ActorRef): Actor.Receive = {
     case CommandFailed(command) =>
       log.debug(s"Command failed -> ${command.failureMessage}")
-    case command: IRCCommand =>
-      val message = command.toMessage
+    case command: IRCMessage =>
+      val message = command
       log.debug(s"Message to send {}", message)
       val rawString = Seq(
         message.command,
@@ -68,10 +60,10 @@ class IRCConnection(dispatcher: ActorRef, nick: String, username: String, isWall
       log.debug("Attempt to connecting")
       manager ! Connect(new InetSocketAddress("irc.freenode.net",6667))
     case Connected(remote, local) =>
-      context.become(sendMessages)
       unstashAll()
-      connection = sender()
+      val connection = sender()
       connection ! Register(lexerActor)
+      context.become(sendMessages(connection))
       log.debug("Connected to {} using port {}", remote.getHostName, local.getPort)
     case _ => stash()
   }

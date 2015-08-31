@@ -1,6 +1,7 @@
 package org.bambucha.watson
 
 import akka.actor.Props
+import org.bambucha.watson.messages.NoticeMessage
 import scala.concurrent.duration._
 
 /**
@@ -27,7 +28,7 @@ class ParserActorTest extends ActorTest {
     val parser = system.actorOf(props)
     parser ! commandCode
     parser ! CRLF
-    expectMsg(IRCMessage(None, numericCommand, List.empty))
+    expectMsg(IRCParsedMessage(None, numericCommand, List.empty))
   }
 
   it should "parse message without paramters" in {
@@ -37,7 +38,7 @@ class ParserActorTest extends ActorTest {
     parser ! Space
     parser ! commandCode
     parser ! CRLF
-    expectMsg(IRCMessage(Some(prefix), numericCommand, List.empty))
+    expectMsg(IRCParsedMessage(Some(prefix), numericCommand, List.empty))
   }
 
   it should "parse message with plain paramters" in {
@@ -49,7 +50,7 @@ class ParserActorTest extends ActorTest {
     parser ! Space
     parser ! planParameter
     parser ! CRLF
-    expectMsg(IRCMessage(Some(prefix), numericCommand, List(planParameter)))
+    expectMsg(IRCParsedMessage(Some(prefix), numericCommand, List(planParameter)))
   }
 
   it should "parse message with middle param" in {
@@ -60,7 +61,7 @@ class ParserActorTest extends ActorTest {
     parser ! Colon
     parser ! planParameter
     parser ! CRLF
-    expectMsg(IRCMessage(None, numericCommand, List(planParameter + ":" + planParameter)))
+    expectMsg(IRCParsedMessage(None, numericCommand, List(planParameter + ":" + planParameter)))
  }
 
   it should "parse message with talling param" in {
@@ -74,7 +75,7 @@ class ParserActorTest extends ActorTest {
     parser ! Colon
     parser ! planParameter
     parser ! CRLF
-    expectMsg(IRCMessage(None, numericCommand, List(planParameter + " " + planParameter + ":" + planParameter)))
+    expectMsg(IRCParsedMessage(None, numericCommand, List(planParameter + " " + planParameter + ":" + planParameter)))
   }
 
   it should "parse message with 15 parameters with explicit colon on last" in {
@@ -90,7 +91,7 @@ class ParserActorTest extends ActorTest {
     parser ! Space
     parser ! planParameter
     parser ! CRLF
-    val result = receiveOne(100.millisecond).asInstanceOf[IRCMessage]
+    val result = receiveOne(100.millisecond).asInstanceOf[IRCParsedMessage]
     result.params should have size 15
     result.params.last shouldEqual (planParameter + " " + planParameter)
   }
@@ -107,7 +108,7 @@ class ParserActorTest extends ActorTest {
     parser ! Space
     parser ! planParameter
     parser ! CRLF
-    val result = receiveOne(100.millisecond).asInstanceOf[IRCMessage]
+    val result = receiveOne(100.millisecond).asInstanceOf[IRCParsedMessage]
     result.params should have size 15
     result.params.last shouldEqual (planParameter + " " + planParameter)
   }
@@ -132,6 +133,6 @@ class ParserActorTest extends ActorTest {
     parser ! Space
     parser ! "hostname..."
     parser ! CRLF
-    expectMsg(IRCMessage(Some("hobana.freenode.net"),"NOTICE", List("*", "*** Looking up your hostname...")))
+    expectMsg(NoticeMessage(Some("hobana.freenode.net"), "*", "*** Looking up your hostname..."))
   }
 }

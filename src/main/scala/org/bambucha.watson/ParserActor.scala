@@ -2,6 +2,8 @@ package org.bambucha.watson
 
 import Tokens.{CRLF, Space, Colon}
 import akka.actor.{LoggingFSM, ActorRef, Actor}
+import org.bambucha.watson.messages.{PingMessage, NoticeMessage, IRCMessage}
+import akka.routing.Router
 
 sealed trait ParserState
 
@@ -26,10 +28,10 @@ case class Prefix(value: String) extends ParserData {
 }
 
 case class Command(prefix: Option[String], command: String) extends ParserData{
-  def addParameter(param: String): ParserData = IRCMessage(prefix, command, List(param))
+  def addParameter(param: String): ParserData = IRCParsedMessage(prefix, command, List(param))
 }
 
-case class IRCMessage(prefix: Option[String], command: String, params: List[String]) extends ParserData {
+case class IRCParsedMessage(prefix: Option[String], command: String, params: List[String]) extends IRCMessage with ParserData {
   def addParameter(param: String): ParserData = copy(params = params :+ param)
   def appendToLastParameter(param: String): ParserData = {
     copy(params = params.updated(params.length-1, params.last + param))
@@ -62,54 +64,54 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
   when(ParseParameters) {
     case Event(Space, command: Command) => goto(ParseParameter) using command.addParameter("")
     case Event(CRLF, command: Command) => {
-      output ! IRCMessage(command.prefix, command.command, List.empty)
+      output ! IRCParsedMessage(command.prefix, command.command, List.empty)
       goto(ParseMessage) using Empty
     }
   }
 
   when(ParseParameter) {
-    case Event(text: String, message: IRCMessage) if message.params.size < 15 => {
+    case Event(text: String, message: IRCParsedMessage) if message.params.size < 15 => {
       goto(ParseMiddleParameter) using message.appendToLastParameter(text)
     }
-    case Event(text: String, message: IRCMessage)=> {
+    case Event(text: String, message: IRCParsedMessage)=> {
       goto(ParseTrailingParameter) using message.appendToLastParameter(text)
     }
-    case Event(Colon, message: IRCMessage) => {
+    case Event(Colon, message: IRCParsedMessage) => {
       goto(ParseTrailingParameter) using message
     }
-    case Event(CRLF, message: IRCMessage) => {
+    case Event(CRLF, message: IRCParsedMessage) => {
       sendMessages()
       goto(ParseMessage) using Empty
     }
   }
 
   when(ParseMiddleParameter) {
-    case Event(text: String, message: IRCMessage) => {
+    case Event(text: String, message: IRCParsedMessage) => {
       stay using message.appendToLastParameter(text)
     }
-    case Event(Colon, message: IRCMessage) => {
+    case Event(Colon, message: IRCParsedMessage) => {
       stay using message.appendToLastParameter(":")
     }
-    case Event(Space, message: IRCMessage) => {
+    case Event(Space, message: IRCParsedMessage) => {
       goto(ParseParameter) using message.addParameter("")
     }
-    case Event(CRLF, message: IRCMessage) => {
+    case Event(CRLF, message: IRCParsedMessage) => {
       sendMessages()
       goto(ParseMessage) using Empty
     }
   }
 
   when(ParseTrailingParameter){
-    case Event(text: String, message: IRCMessage) => {
+    case Event(text: String, message: IRCParsedMessage) => {
       stay using message.appendToLastParameter(text)
     }
-    case Event(Colon, message: IRCMessage) => {
+    case Event(Colon, message: IRCParsedMessage) => {
       stay using message.appendToLastParameter(":")
     }
-    case Event(Space, message: IRCMessage) => {
+    case Event(Space, message: IRCParsedMessage) => {
       stay using message.appendToLastParameter(" ")
     }
-    case Event(CRLF, message: IRCMessage) => {
+    case Event(CRLF, message: IRCParsedMessage) => {
       sendMessages()
       goto(ParseMessage) using Empty
     }
@@ -117,10 +119,15 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
 
   def sendMessages(): Unit =  {
     stateData match {
-      case message: IRCMessage =>
+      case message @ IRCParsedMessage(_, NoticeMessage.command, _) =>
+        output ! NoticeMessage(message)
+      case message @ IRCParsedMessage(_, PingMessage.command, _) =>
+        output ! PingMessage(message)
+      case message: IRCParsedMessage =>
         output ! message
         log.debug(message.toString)
       case _ =>
+        log.debug("State data is not IRCPArsedMessage. Didn't send anything")
     }
   }
 }
