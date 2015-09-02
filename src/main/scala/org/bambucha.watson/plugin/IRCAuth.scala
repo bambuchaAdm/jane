@@ -1,6 +1,6 @@
-package org.bambucha.watson
+package org.bambucha.watson.plugin
 
-import akka.actor.{Props, ActorLogging, ActorRef}
+import akka.actor.{ActorLogging, ActorRef, Props}
 import org.bambucha.watson.PluginManagerProtocol.RegisterPlugin
 import org.bambucha.watson.messages._
 

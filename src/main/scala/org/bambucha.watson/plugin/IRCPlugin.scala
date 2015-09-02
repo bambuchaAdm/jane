@@ -1,6 +1,7 @@
-package org.bambucha.watson
+package org.bambucha.watson.plugin
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Actor, ActorRef}
+import org.bambucha.watson.PluginManagerProtocol
 
 abstract class IRCPlugin extends Actor {
   def behavior(connection: ActorRef): Receive
