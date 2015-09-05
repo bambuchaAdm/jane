@@ -4,6 +4,7 @@ import akka.actor.Props
 import akka.io.Tcp.{Write, Register, Connected}
 import akka.util.ByteString
 import java.net.InetSocketAddress
+import org.bambucha.watson.connection.IRCConnection
 import org.bambucha.watson.messages.QuitCommand
 
 /**

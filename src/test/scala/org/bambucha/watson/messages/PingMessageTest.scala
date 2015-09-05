@@ -1,6 +1,7 @@
 package org.bambucha.watson.messages
 
-import org.bambucha.watson.{IRCParsedMessage, BaseTest}
+import org.bambucha.watson.BaseTest
+import org.bambucha.watson.connection.IRCParsedMessage
 import org.scalatest.OptionValues
 
 class PingMessageTest extends BaseTest with OptionValues {

@@ -3,6 +3,7 @@ package org.bambucha.watson
 import akka.actor._
 import org.bambucha.watson.BotProtocol.Start
 import org.bambucha.watson.PluginManagerProtocol.{Connection, RegisterPlugin}
+import org.bambucha.watson.connection.{IRCConnection, IRCConnectionProtocol}
 import org.bambucha.watson.plugin.IRCAuth
 
 object BotProtocol {
@@ -11,7 +12,7 @@ object BotProtocol {
 
 class Bot extends Actor {
 
-  import org.bambucha.watson.IRCConnectionProtocol.{Start => ConnectionStart}
+  import IRCConnectionProtocol.{Start => ConnectionStart}
 
   val pluginManager = context.actorOf(Props(classOf[PluginManager]), "pluginManager")
 

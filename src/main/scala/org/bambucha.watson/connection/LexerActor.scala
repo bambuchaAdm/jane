@@ -1,11 +1,9 @@
-package org.bambucha.watson
+package org.bambucha.watson.connection
 
-import Tokens.{CRLF, Null, Colon, Space}
-import akka.actor.{ActorLogging, ActorRef, Actor}
-import akka.util.ByteString
+import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.io.Tcp._
-import scala.annotation.tailrec
-import scala.util.control.TailCalls._
+import akka.util.ByteString
+import Tokens.{CRLF, Colon, Null, Space}
 
 class LexerActor(parser: ActorRef) extends Actor with ActorLogging {
 

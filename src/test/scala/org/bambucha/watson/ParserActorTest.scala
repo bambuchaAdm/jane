@@ -1,6 +1,7 @@
 package org.bambucha.watson
 
 import akka.actor.Props
+import org.bambucha.watson.connection.{Tokens, IRCParsedMessage, ParserActor}
 import org.bambucha.watson.messages.NoticeMessage
 import scala.concurrent.duration._
 

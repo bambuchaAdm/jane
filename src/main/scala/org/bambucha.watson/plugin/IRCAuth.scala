@@ -15,3 +15,4 @@ class IRCAuth extends IRCPlugin with ActorLogging {
     case msg => log.debug("Message unhandled {}", msg)
   }
 }
+                                                                   p

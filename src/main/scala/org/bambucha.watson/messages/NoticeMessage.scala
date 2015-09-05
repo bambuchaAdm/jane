@@ -1,6 +1,6 @@
 package org.bambucha.watson.messages
 
-import org.bambucha.watson.IRCParsedMessage
+import org.bambucha.watson.connection.IRCParsedMessage
 
 case class NoticeMessage(prefix: Option[String] = None, target: String, message: String) extends IRCMessage {
   override val command: String = NoticeMessage.command

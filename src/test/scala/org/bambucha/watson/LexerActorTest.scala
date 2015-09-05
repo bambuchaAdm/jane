@@ -4,6 +4,8 @@ import akka.actor.Props
 import akka.util.ByteString
 import java.nio.charset.Charset
 
+import org.bambucha.watson.connection.{Tokens, LexerActor}
+
 /**
  * Created by bambucha on 11.04.14.
  */

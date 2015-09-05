@@ -1,7 +1,8 @@
-package org.bambucha.watson
+package org.bambucha.watson.connection
+
+import java.nio.charset.Charset
 
 import akka.util.ByteString
-import java.nio.charset.Charset
 
 /**
  * Created by bambucha on 11.04.14.
