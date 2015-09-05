@@ -6,7 +6,7 @@ case class ModeMessage(prefix: Option[String],
                        modesRemoved: List[Mode]) extends IRCMessage {
   override val command: String = ModeMessage.command
   override val params: List[String] = {
-    modesAdded.map(mode => "+" + mode.symbol) ++ modesRemoved.map(mode => "-" + mode.symbol)
+    List(channel) ++ modesAdded.map(mode => "+" + mode.symbol) ++ modesRemoved.map(mode => "-" + mode.symbol)
   }
 }
 

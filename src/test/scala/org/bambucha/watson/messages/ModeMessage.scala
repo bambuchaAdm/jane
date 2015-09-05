@@ -5,5 +5,10 @@ import org.bambucha.watson.BaseTest
 class ModeMessageTest extends BaseTest {
   behavior of "ModeMessage"
 
-  it should ""
+  val channel: String = "#botspace"
+
+  it should "have plus on added mode" in {
+    val subject = ModeMessage(None, channel, List(Mode.invisible), List.empty)
+    subject.params should contain inOrder(channel, "+i")
+  }
 }
