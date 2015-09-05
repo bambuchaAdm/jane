@@ -1,7 +1,7 @@
 package org.bambucha.watson.connection
 
 import akka.actor.{Actor, ActorRef, LoggingFSM}
-import Tokens.{CRLF, Colon, Space}
+import org.bambucha.watson.connection.Tokens.{CRLF, Colon, Space}
 import org.bambucha.watson.messages.{IRCMessage, NoticeMessage, PingMessage}
 
 sealed trait ParserState

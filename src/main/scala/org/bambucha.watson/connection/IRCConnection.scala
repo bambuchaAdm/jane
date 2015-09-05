@@ -7,7 +7,6 @@ import akka.actor._
 import akka.io.Tcp.{CommandFailed, Connect, Connected, Register, _}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
-import org.bambucha.watson.connection.ParserActor
 
 object IRCConnectionProtocol {
   object Start
@@ -16,6 +15,7 @@ object IRCConnectionProtocol {
 
 class IRCConnection(dispatcher: ActorRef) extends Actor with ActorLogging with Stash {
   import org.bambucha.watson.messages.IRCMessage
+  import IRCConnectionProtocol._
 
   val parserProps = Props(classOf[ParserActor], dispatcher)
   val parserActor = context.actorOf(parserProps, "parser")
