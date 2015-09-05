@@ -7,8 +7,8 @@ class ModeMessageTest extends BaseTest {
 
   val channel: String = "#botspace"
 
-  it should "have plus on added mode" in {
-    val subject = ModeMessage(None, channel, List(Mode.invisible), List.empty)
+  it should "have plus on added mode  " in {
+    val subject = ModeMessage(None, channel, List(UserMode.invisible), List.empty)
     subject.params should contain inOrder(channel, "+i")
   }
 }
