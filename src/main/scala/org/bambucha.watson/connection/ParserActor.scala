@@ -1,6 +1,6 @@
 package org.bambucha.watson.connection
 
-import akka.actor.{Actor, ActorRef, LoggingFSM}
+import akka.actor.{Props, Actor, ActorRef, LoggingFSM}
 import org.bambucha.watson.connection.Tokens.{CRLF, Colon, Space}
 import org.bambucha.watson.messages._
 
@@ -130,6 +130,15 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
         output ! ModeMessage(message)
       case message @ IRCParsedMessage(_, JoinMessage.command, _) =>
         output ! JoinMessage(message)
+
+
+      case msg @ IRCParsedMessage(_, MOTDMessage.beginCommand, _) =>
+        context.actorOf(Props(classOf[MOTDFolder], output)) ! msg
+      case msg @ IRCParsedMessage(_, MOTDMessage.intermediateCommand, _) =>
+        context.children.foreach(_ ! msg)
+      case msg @ IRCParsedMessage(_, MOTDMessage.endCommand, _) =>
+        context.children.foreach(_ ! msg)
+
 
       case message: IRCParsedMessage =>
         output ! message
