@@ -126,11 +126,12 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
         output ! NoticeMessage(message)
       case message @ IRCParsedMessage(_, PingMessage.command, _) =>
         output ! PingMessage(message)
+      case message @ IRCParsedMessage(_, PongMessage.command, _) =>
+        output ! PongMessage(message)
       case message @ IRCParsedMessage(_, ModeMessage.command, _) =>
         output ! ModeMessage(message)
       case message @ IRCParsedMessage(_, JoinMessage.command, _) =>
         output ! JoinMessage(message)
-
 
       case msg @ IRCParsedMessage(_, MOTDMessage.beginCommand, _) =>
         context.actorOf(Props(classOf[MOTDFolder], output)) ! msg

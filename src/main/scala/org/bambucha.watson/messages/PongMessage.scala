@@ -1,9 +1,17 @@
 package org.bambucha.watson.messages
 
-/**
- * Created by bambucha on 31.08.15.
- */
+import org.bambucha.watson.connection.IRCParsedMessage
+
 case class PongMessage(prefix: Option[String] = None, server: String, destination: Option[String]) extends IRCMessage {
-  override val command: String = "PONG"
+  override val command: String = PongMessage.command
   override val params: List[String] = List(server) ++ destination
 }
+
+object PongMessage {
+  val command: String = "PONG"
+
+  def apply(message: IRCParsedMessage): PongMessage = {
+    PongMessage(message.prefix, message.params.head, Option(message.params.tail.head))
+  }
+}
+
