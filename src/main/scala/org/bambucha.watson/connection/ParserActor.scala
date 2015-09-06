@@ -2,7 +2,7 @@ package org.bambucha.watson.connection
 
 import akka.actor.{Actor, ActorRef, LoggingFSM}
 import org.bambucha.watson.connection.Tokens.{CRLF, Colon, Space}
-import org.bambucha.watson.messages.{IRCMessage, NoticeMessage, PingMessage}
+import org.bambucha.watson.messages.{ModeMessage, IRCMessage, NoticeMessage, PingMessage}
 
 sealed trait ParserState
 
@@ -30,11 +30,15 @@ case class Command(prefix: Option[String], command: String) extends ParserData{
   def addParameter(param: String): ParserData = IRCParsedMessage(prefix, command, List(param))
 }
 
-case class IRCParsedMessage(prefix: Option[String], command: String, params: List[String]) extends IRCMessage with ParserData {
+case class IRCParsedMessage(prefix: Option[String], command: String, params: List[String]) extends ParserData {
   def addParameter(param: String): ParserData = copy(params = params :+ param)
   def appendToLastParameter(param: String): ParserData = {
     copy(params = params.updated(params.length-1, params.last + param))
   }
+}
+
+object IRCParsedMessage {
+  def apply(prefix: Option[String], command: String, params: String*): IRCParsedMessage = apply(prefix, command, params.toList)
 }
 
 class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, ParserData] {
@@ -122,6 +126,9 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
         output ! NoticeMessage(message)
       case message @ IRCParsedMessage(_, PingMessage.command, _) =>
         output ! PingMessage(message)
+
+      case message @ IRCParsedMessage(_, ModeMessage.command, _) =>
+        output ! ModeMessage(message)
       case message: IRCParsedMessage =>
         output ! message
         log.debug(message.toString)

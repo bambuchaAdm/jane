@@ -1,5 +1,8 @@
 package org.bambucha.watson.database
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import akka.actor._
 import akka.routing.{ActorRefRoutee, Router, RoundRobinRoutingLogic}
 import com.mongodb.casbah.Imports._
@@ -51,23 +54,26 @@ class DBActor extends Actor with ActorLogging {
     case StatusRequest =>
       sender() ! Status(driver.allAddress.map(_.toString).toList)
     case msg =>
-      router.route(msg, sender())
+      log.debug("To save {}", msg.toString)
+
+      router.route((msg, LocalDateTime.now()), sender())
   }
 }
 
 class DBWorker(driver: MongoClient, dbName: String) extends Actor with ActorLogging {
-  implicit val parsedMessageDatabaseView: (IRCParsedMessage => DBObject) = (msg) => {
-    MongoDBObject("prefix" -> msg.prefix.getOrElse(""), "command" -> msg.command, "parameters" -> msg.params)
+  implicit val parsedMessageDatabaseView: (((IRCParsedMessage, LocalDateTime)) => DBObject) = (tp) => {
+    val (msg, time) = tp
+    MongoDBObject("prefix" -> msg.prefix.getOrElse(""), "command" -> msg.command, "parameters" -> msg.params, "time" -> time.format(DateTimeFormatter.ISO_DATE_TIME))
   }
 
   val db = driver(dbName)
 
-  val unknown = db("unkown")
+  val unknown = db("unknown")
 
   log.info("Connected to database on worker {}", self.path.name)
 
   override def receive: Receive = {
-    case msg: IRCParsedMessage =>
+    case msg: (IRCParsedMessage, LocalDateTime) =>
       unknown.insert(msg)
   }
 

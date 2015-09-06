@@ -2,6 +2,7 @@ package org.bambucha.watson
 
 import akka.actor._
 import org.bambucha.watson.PluginManagerProtocol.{Connection, RegisterPlugin}
+import org.bambucha.watson.connection.IRCParsedMessage
 import org.bambucha.watson.messages.IRCMessage
 
 object PluginManagerProtocol {
@@ -9,7 +10,7 @@ object PluginManagerProtocol {
   case class Connection(handler: ActorRef)
 }
 
-class PluginManager extends Actor with ActorLogging with Stash {
+class PluginManager(db: ActorRef) extends Actor with ActorLogging with Stash {
 
   var plugins = List.empty[ActorRef]
 
@@ -17,12 +18,17 @@ class PluginManager extends Actor with ActorLogging with Stash {
     case RegisterPlugin(plugin, name) =>
       log.debug("Adding plugin {}", plugin)
       val instance = context.actorOf(plugin, name)
+      context watch instance
       plugins = plugins :+ instance
       instance ! Connection(connection)
     case msg: IRCMessage =>
       plugins.foreach( _.tell(msg, connection))
+    case msg: IRCParsedMessage =>
+      db.forward(msg)
     case Connection(handler) =>
       context.become(work(handler))
+    case Terminated(ref) =>
+      plugins = plugins.filterNot(_ == ref)
   }
 
   override def receive: Actor.Receive = {
