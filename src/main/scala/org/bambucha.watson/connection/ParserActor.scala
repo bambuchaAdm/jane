@@ -132,6 +132,8 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
         output ! ModeMessage(message)
       case message @ IRCParsedMessage(_, JoinMessage.command, _) =>
         output ! JoinMessage(message)
+      case message @ IRCParsedMessage(_, PrivateMessage.command, _) =>
+        output ! PrivateMessage(message)
 
       case msg @ IRCParsedMessage(_, MOTDMessage.beginCommand, _) =>
         context.actorOf(Props(classOf[MOTDFolder], output)) ! msg
@@ -139,7 +141,6 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
         context.children.foreach(_ ! msg)
       case msg @ IRCParsedMessage(_, MOTDMessage.endCommand, _) =>
         context.children.foreach(_ ! msg)
-
 
       case message: IRCParsedMessage =>
         output ! message

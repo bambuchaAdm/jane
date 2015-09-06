@@ -4,10 +4,6 @@ import java.nio.charset.Charset
 
 import akka.util.ByteString
 
-/**
- * Created by bambucha on 11.04.14.
- */
-
 trait Token {
   def value: ByteString
 }
