@@ -2,7 +2,7 @@ package org.bambucha.watson.connection
 
 import akka.actor.{Actor, ActorRef, LoggingFSM}
 import org.bambucha.watson.connection.Tokens.{CRLF, Colon, Space}
-import org.bambucha.watson.messages.{ModeMessage, IRCMessage, NoticeMessage, PingMessage}
+import org.bambucha.watson.messages._
 
 sealed trait ParserState
 
@@ -126,9 +126,11 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
         output ! NoticeMessage(message)
       case message @ IRCParsedMessage(_, PingMessage.command, _) =>
         output ! PingMessage(message)
-
       case message @ IRCParsedMessage(_, ModeMessage.command, _) =>
         output ! ModeMessage(message)
+      case message @ IRCParsedMessage(_, JoinMessage.command, _) =>
+        output ! JoinMessage(message)
+
       case message: IRCParsedMessage =>
         output ! message
         log.debug(message.toString)

@@ -23,6 +23,7 @@ class PluginManager(db: ActorRef) extends Actor with ActorLogging with Stash {
       instance ! Connection(connection)
     case msg: IRCMessage =>
       plugins.foreach( _.tell(msg, connection))
+      log.debug("Receive {}", msg)
     case msg: IRCParsedMessage =>
       db.forward(msg)
     case Connection(handler) =>
