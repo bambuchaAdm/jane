@@ -12,6 +12,7 @@ class IRCAuth extends IRCPlugin with ActorLogging {
       connection ! NickCommand("buczbot")
       context.stop(self)
       context.parent ! RegisterPlugin(Props[IRCPing], "ping")
+      context.parent ! RegisterPlugin(Props[ChannelManager],"channelManager")
     case msg => log.debug("Message unhandled {}", msg)
   }
 }

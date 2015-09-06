@@ -16,8 +16,8 @@ object ModeMessage {
   val command = "MODE"
 
   def apply(message: IRCParsedMessage): ModeMessage = {
-    def convertLetterToModes(modes: String): List[Mode] = {
-      modes.drop(1).map(UserMode.letterConverter).toList
+    def convertLetterToModes(modes: String): Iterable[Mode] = {
+      modes.drop(1).flatMap(UserMode.letterConverter.get)
     }
     val subject = message.params.head
     val modeChanges = message.params.tail
