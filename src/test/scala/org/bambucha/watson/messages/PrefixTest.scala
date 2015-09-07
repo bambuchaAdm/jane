@@ -10,13 +10,14 @@ class PrefixTest extends BaseTest with TryValues {
 
   it should "parse server name" in {
     val result = new PrefixParser("wolfe.freenode.net").Prefix.run()
-    result.success.value.head shouldEqual ServerName("wolfe.freenode.net")
+    result.success.value shouldEqual ServerName("wolfe.freenode.net")
     println(result.success.value)
   }
 
   it should "parse user input" in {
     val parser = new PrefixParser("bambucha|wariat!~bambucha@adsl.inetia.pl")
     val result = parser.Prefix.run()
+    result.success.value shouldEqual UserPrefix(Nickname("bambucha|wariat"),Option(Username("~bambucha")),Option(Host("adsl.inetia.pl")))
     println(result)
     result.recover{ case any => println(parser.formatError(any.asInstanceOf[ParseError])) }
   }

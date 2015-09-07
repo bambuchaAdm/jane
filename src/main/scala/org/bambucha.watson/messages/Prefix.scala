@@ -2,7 +2,26 @@ package org.bambucha.watson.messages
 
 import org.parboiled2.{CharPredicate, ParserInput, Parser}
 
-case class ServerName(name: String) extends AnyVal
+sealed trait Prefix {
+  val isServer :Boolean
+  val isUser: Boolean
+}
+
+case class ServerName(name: String) extends Prefix{
+  override val isServer = true
+
+  override val isUser = false
+
+  override def toString = name
+}
+
+case class UserPrefix(nick: Nickname, user: Option[Username], host: Option[Host]) extends Prefix {
+  override val isServer = false
+
+  override val isUser = true
+
+  override def toString = nick.nick + user.map('!' + _.username).getOrElse("") + host.map('@' + _.name).getOrElse("")
+}
 
 case class Nickname(nick: String) extends AnyVal
 
@@ -10,15 +29,13 @@ case class Username(username: String) extends AnyVal
 
 case class Host(name: String) extends AnyVal
 
-class Prefix {
-
-}
-
 class PrefixParser(val input: ParserInput) extends Parser {
 
   import CharPredicate._
 
-  def Prefix = rule { (Nick ~ optional( ch('!') ~ User) ~ optional(ch('@') ~ Host)) ~ EOI | Servername ~ EOI }
+  def Prefix = rule { Userprefix ~ EOI  | Servername ~ EOI }
+
+  def Userprefix = rule { Nick ~ optional( ch('!') ~ User) ~ optional(ch('@') ~ Host) ~> UserPrefix.apply _}
 
   def Servername = rule { capture(Hostname) ~> ServerName.apply _ }
 
