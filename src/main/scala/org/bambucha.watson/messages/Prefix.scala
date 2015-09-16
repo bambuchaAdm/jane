@@ -12,7 +12,7 @@ case class ServerName(name: String) extends Prefix{
 
   override val isUser = false
 
-  override def toString = name
+  //override def toString = name
 }
 
 case class UserPrefix(nick: Nickname, user: Option[Username], host: Option[Host]) extends Prefix {
@@ -20,7 +20,7 @@ case class UserPrefix(nick: Nickname, user: Option[Username], host: Option[Host]
 
   override val isUser = true
 
-  override def toString = nick.nick + user.map('!' + _.username).getOrElse("") + host.map('@' + _.name).getOrElse("")
+  //override def toString = nick.nick + user.map('!' + _.username).getOrElse("") + host.map('@' + _.name).getOrElse("")
 }
 
 case class Nickname(nick: String) extends AnyVal
@@ -29,7 +29,7 @@ case class Username(username: String) extends AnyVal
 
 case class Host(name: String) extends AnyVal
 
-class PrefixParser(val input: ParserInput) extends Parser {
+case class PrefixParser(input: ParserInput) extends Parser {
 
   import CharPredicate._
 

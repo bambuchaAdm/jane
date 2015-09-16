@@ -2,7 +2,7 @@ package org.bambucha.watson
 
 import akka.actor.Props
 import org.bambucha.watson.connection.{Tokens, IRCParsedMessage, ParserActor}
-import org.bambucha.watson.messages.NoticeMessage
+import org.bambucha.watson.messages.{ServerName, NoticeMessage}
 import scala.concurrent.duration._
 
 /**
@@ -16,12 +16,13 @@ class ParserActorTest extends ActorTest {
 
   val props = Props(classOf[ParserActor], testActor)
 
-  val prefix = "test"
+  val prefix = "irc.freenode.net"
   val commandCode = "203"
   val planParameter = "hello"
   val middleParameter = "hello:hello"
   val parameterWithSpace = "hello hello"
   val parameterWithLeadingSpace = "  hello hello"
+  val testPrefix = Some(ServerName("irc.freenode.net"))
 
   val numericCommand = commandCode
 
@@ -39,7 +40,8 @@ class ParserActorTest extends ActorTest {
     parser ! Space
     parser ! commandCode
     parser ! CRLF
-    expectMsg(IRCParsedMessage(Some(prefix), numericCommand, List.empty))
+
+    expectMsg(IRCParsedMessage(testPrefix, numericCommand, List.empty))
   }
 
   it should "parse message with plain paramters" in {
@@ -51,7 +53,7 @@ class ParserActorTest extends ActorTest {
     parser ! Space
     parser ! planParameter
     parser ! CRLF
-    expectMsg(IRCParsedMessage(Some(prefix), numericCommand, List(planParameter)))
+    expectMsg(IRCParsedMessage(testPrefix, numericCommand, List(planParameter)))
   }
 
   it should "parse message with middle param" in {
@@ -134,6 +136,6 @@ class ParserActorTest extends ActorTest {
     parser ! Space
     parser ! "hostname..."
     parser ! CRLF
-    expectMsg(NoticeMessage(Some("hobana.freenode.net"), "*", "*** Looking up your hostname..."))
+    expectMsg(NoticeMessage(Option(ServerName("hobana.freenode.net")), "*", "*** Looking up your hostname..."))
   }
 }

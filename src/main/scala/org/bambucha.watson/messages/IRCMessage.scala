@@ -5,7 +5,7 @@ package org.bambucha.watson.messages
  */
 abstract class IRCMessage {
 
-  val prefix: Option[String]
+  val prefix: Option[Prefix]
 
   val command: String
 

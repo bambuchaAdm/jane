@@ -2,7 +2,7 @@ package org.bambucha.watson.messages
 
 import org.bambucha.watson.connection.IRCParsedMessage
 
-case class ModeMessage(prefix: Option[String],
+case class ModeMessage(prefix: Option[Prefix],
                        subject: String,
                        modesAdded: List[Mode],
                        modesRemoved: List[Mode]) extends IRCMessage {

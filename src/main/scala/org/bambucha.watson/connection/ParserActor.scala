@@ -4,6 +4,8 @@ import akka.actor.{Props, Actor, ActorRef, LoggingFSM}
 import org.bambucha.watson.connection.Tokens.{CRLF, Colon, Space}
 import org.bambucha.watson.messages._
 
+import scala.util.Success
+
 sealed trait ParserState
 
 case object ParseMessage extends ParserState
@@ -22,15 +24,28 @@ case object Empty extends ParserData {
   def addParameter(param: String): ParserData = throw new RuntimeException("Trying add parameter to empty")
 }
 
-case class Prefix(value: String) extends ParserData {
+case class PartialPrefix(value: String) extends ParserData {
   def addParameter(param: String): ParserData = throw new RuntimeException("Trying add parameter to prefix")
 }
 
-case class Command(prefix: Option[String], command: String) extends ParserData{
+case class ParsedPrefix(value: Option[Prefix]) extends ParserData {
+  override def addParameter(param: String): ParserData = throw new RuntimeException("Trying add parameter to prefix")
+}
+
+object ParsedPrefix {
+  def apply(partialPrefix: PartialPrefix): ParsedPrefix = {
+    PrefixParser(partialPrefix.value).Prefix.run() match {
+      case Success(prefix) => ParsedPrefix(Option(prefix))
+      case _ => ParsedPrefix(None)
+    }
+  }
+}
+
+case class Command(prefix: Option[Prefix], command: String) extends ParserData{
   def addParameter(param: String): ParserData = IRCParsedMessage(prefix, command, List(param))
 }
 
-case class IRCParsedMessage(prefix: Option[String], command: String, params: List[String]) extends ParserData {
+case class IRCParsedMessage(prefix: Option[Prefix], command: String, params: List[String]) extends ParserData {
   def addParameter(param: String): ParserData = copy(params = params :+ param)
   def appendToLastParameter(param: String): ParserData = {
     copy(params = params.updated(params.length-1, params.last + param))
@@ -38,7 +53,11 @@ case class IRCParsedMessage(prefix: Option[String], command: String, params: Lis
 }
 
 object IRCParsedMessage {
-  def apply(prefix: Option[String], command: String, params: String*): IRCParsedMessage = apply(prefix, command, params.toList)
+  import org.parboiled2.Parser.DeliveryScheme.Throw
+  def apply(prefix: Option[String], command: String, params: String*): IRCParsedMessage = {
+    val parsedPrefix = prefix.map(rawPrefix => PrefixParser(rawPrefix).Prefix.run())
+    apply(parsedPrefix, command, params.toList)
+  }
 }
 
 class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, ParserData] {
@@ -47,20 +66,20 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
   startWith(ParseMessage, Empty)
 
   when(ParseMessage) {
-    case Event(Colon, _) => goto(ParsePrefix) using Prefix("")
+    case Event(Colon, _) => goto(ParsePrefix) using PartialPrefix("")
     case Event(msg: String, Empty) => {
       goto(ParseParameters) using Command(None, msg)
     }
   }
 
   when(ParsePrefix) {
-    case Event(msg: String, Prefix(previews)) => goto(ParsePrefix) using Prefix(msg + previews)
-    case Event(Space, state) => goto(ParseCommand) using state
+    case Event(msg: String, PartialPrefix(previews)) => goto(ParsePrefix) using PartialPrefix(msg + previews)
+    case Event(Space, state: PartialPrefix) => goto(ParseCommand) using ParsedPrefix(state)
   }
 
   when(ParseCommand) {
-    case Event(msg: String, x: Prefix) => {
-      goto(ParseParameters) using Command(Some(x.value), msg)
+    case Event(msg: String, x: ParsedPrefix) => {
+      goto(ParseParameters) using Command(x.value, msg)
     }
   }
 
@@ -120,6 +139,8 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
     }
   }
 
+  val motdFolderProps: Props = Props(classOf[MOTDFolder], output)
+
   def sendMessages(): Unit =  {
     stateData match {
       case message @ IRCParsedMessage(_, NoticeMessage.command, _) =>
@@ -136,7 +157,7 @@ class ParserActor(output: ActorRef) extends Actor with LoggingFSM[ParserState, P
         output ! PrivateMessage(message)
 
       case msg @ IRCParsedMessage(_, MOTDMessage.beginCommand, _) =>
-        context.actorOf(Props(classOf[MOTDFolder], output)) ! msg
+        context.actorOf(motdFolderProps) ! msg
       case msg @ IRCParsedMessage(_, MOTDMessage.intermediateCommand, _) =>
         context.children.foreach(_ ! msg)
       case msg @ IRCParsedMessage(_, MOTDMessage.endCommand, _) =>
